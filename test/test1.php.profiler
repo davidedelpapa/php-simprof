@@ -1,0 +1,9 @@
+<?php
+sp_start();
+sleep(2);
+sp_flag('middle1: action 1');
+sleep(1);
+sp_flag('middle1: action 2');
+sleep(3);
+sp_end();
+?>

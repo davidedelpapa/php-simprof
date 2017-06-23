@@ -6,7 +6,7 @@
  */
 
 // Formatters
-$prn_page_setup = "<html>\n<body>\n";
+$prn_page_setup = "\n<html>\n<body>\n";
 $prn_page_ending = "</body>\n</html>";
 $prn_page_title= "<h1>Simple PHP Profiler</h1>\n";
 $prn_separator = "<hr>\n";
@@ -17,6 +17,9 @@ $prn_timing_line_ending_flag = "<tr><th>%s</th><td colspan = '2'><center>(last m
 $prn_timing_line_ending_summary = "<tr><th>TOTAl TIME</th><th>%f</th><th>%f</th></tr>\n";
 $prn_timing_line_end = "</table>\n";
 
+function sp_manual(){
+    // Nothing to do, for now
+}
 
 function sp_flag($message){
     global $_sp_times, $_sp_msg;
@@ -38,9 +41,11 @@ function sp_end(){
     sp_flag('Profiler::End');
 }
 
-function sp_prepare_report($_sp_curr_file){
+function sp_prepare_report($_sp_curr_file = ""){
     global $_sp_times, $_sp_msg, $_sp_prof_report;
     global $prn_separator, $prn_timing_line_beginning, $prn_timing_line_header, $prn_timing_line_pattern, $prn_timing_line_ending_flag, $prn_timing_line_ending_summary, $prn_timing_line_end;
+    if ($_sp_curr_file == "")
+        $_sp_curr_file = basename(__FILE__);
     $total_time_s = 0;
     $size = count($_sp_times);
     $_sp_prof_report[] =  $prn_separator;

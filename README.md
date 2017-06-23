@@ -3,7 +3,7 @@ Simple profiler for PHP scripts
 Ver 0.1 - (c) 2017, Davide Del Papa, Public Domain
 (*Originally based on an answer from [StackOverflow](http://stackoverflow.com/questions/21133/simplest-way-to-profile-a-php-script#answer-29022400)*)
 
-## Usage
+## Simple Usage
 
 An example is worth more than a thousand words:
 
@@ -47,6 +47,137 @@ Profiler::End
 (last mark)
 TOTAl TIME	6000.859976	6.000860
 ```
+
+## More Complex Use Case
+
+Another example:
+
+#### Dir structure
+```
+.
+├── profile.php
+├── simprof.php
+├── test1.php
+├── test2.profiler
+└── tests
+    └── test3.php.profiler
+```
+
+As you can see your scripts can have normal ```.php``` extension, or ```.profiler```, or ```.php.profiler```; it works inside the current dir or its subdirectories.
+
+**Recommended behavior**:
+
+- Put the PHP SimProf files inside the root dir, and all PHP scripts in sub-directories
+- For additional clarity call all scripts ```.php.profiler```
+
+## Cleaning the files
+
+You may use the process.py utility to clean the code of your script from the ```sp_flag()``` calls
+
+#### Usage
+```shell
+.\process.py input-file output-file
+```
+
+Example:
+```shell
+./process.py test/test1.php.profiler test/test1.php
+```
+### Note on process.py
+
+The following is the list the ```process.py``` works with:
+```
+'simprof.php',
+'sp_manual',
+'sp_flag',
+'sp_start',
+'sp_end',
+'sp_prepare_report',
+'sp_print_report'
+```
+
+Whenever ```process.py``` finds any of these keyword in a line **it will delete the whole line!**
+You are warned!
+
+## Manual Use
+
+Naturally, not all programs are so simple as to be possible to use it with the ```profile.php```
+
+Consider the following script (which accepts $_REQUEST):
+
+#### manual_test1.php
+```php
+<?php
+$res = $_REQUEST['x'] + $_REQUEST['y'];
+echo "<h1>Result: $res</h1>";
+sleep(2);
+?>
+```
+In order to test it from the command line, we run:
+
+```shell
+php -B "\$_REQUEST = array('x' => '12', 'y' => '3');" -F 'manual_test1.php'
+```
+**Notes**:
+
+- press ```ENTER``` to "pulse" a request to the script (otherwise there will be no output); ```Ctrl+C``` when you are done plying with our fabulous script!
+- Whenever possible, use a *server* :-)
+
+In order to profile the script we need to add manually both the flags and the commands that calls the ```simprof.php```, plus you need to call the ```sp_manual()``` function
+
+#### manual_test1.php.profiler
+```php
+<?php
+include_once 'simprof.php';
+sp_manual();
+sp_flag('start; calculate sum');
+$res = $_REQUEST['x'] + $_REQUEST['y'];
+sp_flag('display result');
+echo "<h1>Result: $res</h1>";
+sp_flag('sleep a little');
+sleep(2);
+sp_flag('end');
+sp_prepare_report();
+sp_print_report();
+?>
+```
+
+Now we run the usual test (pressing the usual ```Enter```:
+
+```shell
+php -B "\$_REQUEST = array('x' => '12', 'y' => '3');" -F 'test/manual_test1.php.profiler'
+```
+
+#### Output
+```
+<h1>Result: 15</h1>
+<html>
+<body>
+<h1>Simple PHP Profiler</h1>
+<hr>
+<b>File:</b> simprof.php
+<h4>Results:</h4>
+<table>
+<caption><em>Results of 1 run -- 2017 Jun 23, 08:44:07pm</em></caption>
+<tr><th rowspan='2'></th><th colspan = '2'>Total Time</th></tr>
+<tr><th>Milliseconds</th><th>Seconds</th></tr>
+<tr><th>start; calculate sum</th><td>0.053167</td><td>0.000053</td></tr>
+<tr><th>display result</th><td>0.198841</td><td>0.000199</td></tr>
+<tr><th>sleep a little</th><td>2000.303984</td><td>2.000304</td></tr>
+<tr><th>end</th><td colspan = '2'><center>(last mark)</center></td></tr>
+<tr><th>TOTAl TIME</th><th>2000.555992</th><th>2.000556</th></tr>
+</table>
+</body>
+</html>
+```
+
+As you can see, (at least for now) the profiler's report is concatenated at the end of our script's output
+
+#### Notes
+
+- You can have in a project manual scripts mixed in other scripts, and the automatic ```profile.php``` will skip their execution.
+- ```process.py``` is well aware of the manual usage (check the key word list!) and knows (a little) how to clean a manually profiled script.
+
 ## Available Commands
 
 ```php
@@ -70,117 +201,28 @@ sp_end();
 Ending message for the profiler; alternatively just use ```sp_flag(string)``` with an appropriate ending message.
 
 #### Caution
-Whatever the last flag (```sp_flag(string)``` or ```sp_end()```) the profiler does not check the actual timings until the ned of the script.
+Whatever the last flag (```sp_flag(string)``` or ```sp_end()```) the profiler does not check the actual timings until the end of the script. *Commands present after the last flag will not be profiled*.
 
-## More Complex Usage
-
-Another example:
-
-#### Dir structure
-```
-.
-├── profile.php
-├── simprof.php
-├── test1.php
-├── test2.profiler
-└── tests
-    └── test3.php.profiler
-```
-
-As you can see your scripts can have normal ```.php``` extension, or ```.profiler```, or ```.php.profiler```; it works inside the current dir or its subdirectories.
-
-**Recommended behavior**:
-
-- Put the PHP SimProf files inside the root dir, and all PHP scripts in sub-directories
-- For additional clarity call all scripts ```.php.profiler```
-
-#### test1.php
 ```php
-<?php
-sp_flag('start');
-sleep(1);
-sp_flag('middle');
-sleep(4);
-sp_flag('end');
-?>
+sp_end();
 ```
 
-#### test2.profiler
+Starts the manual mode. FOR MANUAL USE.
+
 ```php
-<?php
-sp_flag('start');
-sleep(3);
-sp_flag('middle');
-sleep(2);
-sp_flag('end');
+sp_prepare_report();
 ```
 
-#### test3.php.profiler
+(to be used with ```sp_print_report()```)
+Prepares the report, at the end of all flags. FOR MANUAL USE.
+
 ```php
-<?php
-sp_flag('start');
-sleep(1);
-sp_flag('middle1');
-sleep(1);
-sp_flag('middle2');
-sleep(1);
-sp_flag('end');
-?>
+sp_print_report();
 ```
 
-#### Output (output.html)
-```
-Simple PHP Profiler
+(to be used with ```sp_prepare_report())```)
+Prints out the actual report (using ```echo```). FOR MANUAL USE.
 
-File: test1.php
-Results:
-
-Results of 1 run -- 2017 Jun 22, 09:35:57pm
-Total Time
-Milliseconds	Seconds
-start	1000.277996	1.000278
-middle	4000.146866	4.000147
-end	
-(last mark)
-TOTAl TIME	5000.424862	5.000425
-File: test2.profiler
-Results:
-
-Results of 1 run -- 2017 Jun 22, 09:36:02pm
-Total Time
-Milliseconds	Seconds
-start	3000.408173	3.000408
-middle	2000.092030	2.000092
-end	
-(last mark)
-TOTAl TIME	5000.500202	5.000500
-File: test3.php.profiler
-Results:
-
-Results of 1 run -- 2017 Jun 22, 09:36:05pm
-Total Time
-Milliseconds	Seconds
-start	1000.219107	1.000219
-middle1	1000.108004	1.000108
-middle1	1000.205994	1.000206
-end	
-(last mark)
-TOTAl TIME	3000.533104	3.000533
-```
-
-## Cleaning the files
-
-You may use the process.py utility to clean the code of your script from the ```sp_flag()``` calls
-
-#### Usage
-```shell
-.\process.py input-file output-file
-```
-
-Example:
-```shell
-./process.py test/test1.php.profiler test/test1.php
-```
 ## Road-map
 
 For now this is a simple utility I use for my own scripts. 
@@ -188,7 +230,7 @@ Since it is based on a public answer on StackOverflow I don't deem it a good ide
 I have thought about the following useful functionalities, which I'll implement maybe some day:
 
 - a configuration file
-- flags to skip certain scripts
+- flags to skip certain scripts(not only manual) or parts of a script
 - flags for comments about the flags, to be removed along with the flag themselves
 - possibility of multiple runs of the same scripts, with different configurations (to be handled by the aforementioned config file)
 - maybe some diagrams to show more visually the interrupts flow

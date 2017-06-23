@@ -30,11 +30,15 @@ foreach($file_tree as $curr_file){
         if(($current_basename == "simprof.php") or ($current_basename == "profile.php")){
             // skip
         } else {
-            ob_start();
-            include $curr_file;
-            sp_prepare_report($curr_file);
-            _sp_clean();
-            ob_end_clean();           
+            // Execute only if 'sp_manual' is not present
+            if( strpos(file_get_contents($curr_file),'sp_manual') == false) {
+                // Execute and evaluate
+                ob_start();
+                include $curr_file;
+                sp_prepare_report($curr_file);
+                _sp_clean();
+                ob_end_clean();
+            }
         }
     }
 }

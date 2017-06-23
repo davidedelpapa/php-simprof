@@ -1,0 +1,13 @@
+<?php
+include_once 'simprof.php';
+sp_manual();
+sp_flag('start; calculate sum');
+$res = $_REQUEST['x'] + $_REQUEST['y'];
+sp_flag('display result');
+echo "<h1>Result: $res</h1>";
+sp_flag('sleep a little');
+sleep(2);
+sp_flag('end');
+sp_prepare_report();
+sp_print_report();
+?>

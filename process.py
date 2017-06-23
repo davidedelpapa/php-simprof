@@ -11,7 +11,11 @@ import sys
 
 __version__ = '0.1'
 profiler_keywords = [
-    'sp_flag', 
+    'simprof.php',
+    'sp_manual',
+    'sp_flag',
+    'sp_start',
+    'sp_end',
     'sp_prepare_report',
     'sp_print_report'
     ]
@@ -39,7 +43,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('-v', '--version', action='version', version="%(prog)s " + __version__, help = "Program's version")
 
-parser.add_argument('infile', nargs='1', type=argparse.FileType('r'), default=sys.stdin)
+parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
 parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
 
 parser.set_defaults(func=process_lines)

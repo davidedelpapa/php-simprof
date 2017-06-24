@@ -89,6 +89,7 @@ The following is the list the ```process.py``` works with:
 ```
 'simprof.php',
 'sp_manual',
+'sp_set_param',
 'sp_flag',
 'sp_start',
 'sp_end',
@@ -178,21 +179,45 @@ As you can see, (at least for now) the profiler's report is concatenated at the 
 - You can have in a project manual scripts mixed in other scripts, and the automatic ```profile.php``` will skip their execution.
 - ```process.py``` is well aware of the manual usage (check the key word list!) and knows (a little) how to clean a manually profiled script.
 
-## Available Commands
+## The sp_set_param() command
 
+The previous example showed the difficulty of running automated profiling on a script which needs $_REQUEST, $_GET, or $_POST parameters.
+We saw how using the manual mode we can profile each individual script manually.
+
+However, there is no need to run manually a script if the only difficulty we have is to set HTTP request parameters.
+The command ```sp_set_param($parameters)``` comes handy in this case.
+
+An example:
+#### param_test1.php.profiler
 ```php
+<?php
+sp_set_param(array('x' => '5', 'y' => '2'));
 sp_start();
+$res = $_GET['x'] + $_POST['y'];
+sp_flag();
+echo "<h1>Result: $res</h1>";
+sp_flag();
+sleep(1);
+sp_end();
+?>
 ```
+#### Note
 
-Starting message for the profiler; alternatively just use ```sp_flag(string)``` with an appropriate starting message.
-
+The output will be discarded in the 
+## Available Commands
 
 ```php
 sp_flag('message');
 ```
 
 Sets a flag for the profiler with a commenting message. The message is useful to describe what the next section will do, until the following ```sp_flag(string)``` is issued (or an end);
+**Note**: in the new version of *simprof* the *message* is optional.
 
+```php
+sp_start();
+```
+
+Starting message for the profiler; alternatively just use ```sp_flag(string)``` with an appropriate starting message.
 
 ```php
 sp_end();
@@ -204,7 +229,20 @@ Ending message for the profiler; alternatively just use ```sp_flag(string)``` wi
 Whatever the last flag (```sp_flag(string)``` or ```sp_end()```) the profiler does not check the actual timings until the end of the script. *Commands present after the last flag will not be profiled*.
 
 ```php
-sp_end();
+sp_set_param($parameters[, mode]);
+```
+
+Sets HTTP request parameters ($_REQUEST, $_GET, or $_POST ).
+*mode* can be one of the following:
+
+- ```$_SP_ALL``` (default): sets the three of them ($_REQUEST, $_GET, or $_POST ) with the parameters' array. It occupies memory, but it allows for mixing $_REQUEST, $_GET, and $_POST parameters.
+- ```$_SP_REQUEST```: Sets $_REQUEST with the parameters' array.
+- ```$_SP_GET```: Sets $_GET with the parameters' array.
+- ```$_SP_POST```: Sets $_POST with the parameters' array.
+
+
+```php
+sp_manual();
 ```
 
 Starts the manual mode. FOR MANUAL USE.

@@ -5,6 +5,10 @@
  */
 include_once 'simprof.php';
 
+/*
+ * listDirRecursively
+ * Function to get a list of files out of a directory
+ */
 function listDirRecursively($dir, &$results = array()){
     $files = scandir($dir);
 
@@ -20,7 +24,9 @@ function listDirRecursively($dir, &$results = array()){
 
     return $results;
 }
-//$file_tree = scandir(".");
+
+/* EXECUTION */
+
 $file_tree = listDirRecursively(".");
 
 foreach($file_tree as $curr_file){

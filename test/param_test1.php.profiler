@@ -1,0 +1,10 @@
+<?php
+sp_set_param(array('x' => '5', 'y' => '2'));
+sp_start();
+$res = $_GET['x'] + $_POST['y'];
+sp_flag();
+echo "<h1>Result: $res</h1>";
+sp_flag();
+sleep(1);
+sp_end();
+?>

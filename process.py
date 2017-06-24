@@ -13,6 +13,7 @@ __version__ = '0.1'
 profiler_keywords = [
     'simprof.php',
     'sp_manual',
+    'sp_set_param',
     'sp_flag',
     'sp_start',
     'sp_end',
